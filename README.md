@@ -1,7 +1,8 @@
 # gwt-jqvmap
 GWT Wrapper for jQuery Vector Map Library (jqvmap) http://jqvmap.com
 
-## Download vmap-JavaScript files
+## Setup
+### Download vmap-JavaScript files
 You need to download one of the `jquery.vmap.*.js` files from the [__GitHub__ ](https://github.com/manifestinteractive/jqvmap) repository. And at least one `jquery.vmap.{country}.js` file from the _maps/_ folder. Put those files somewhere on your webserver, so that your GWT application can fetch them. And make sure that jQuery is available.
 
 ### Maven
