@@ -61,6 +61,14 @@ public final class VMapProperties extends JavaScriptObject {
     }-*/;
 
     /**
+     * Returns the color of unselected map regions
+     * @return the RGB color code
+     */
+    public native String getColor() /*-{
+        return this.color;
+    }-*/;
+
+    /**
      * Colors of individual map regions. Keys of the colors objects are country codes according to ISO 3166-1 alpha-2 standard. Keys of colors must be in lower case.
      * @param colors map of ISO code to RGB color code
      */
@@ -155,6 +163,7 @@ public final class VMapProperties extends JavaScriptObject {
             uuid: uuid,
             map: 'world_en',
             showTooltip: false,
+            color: '#f4f3f0',
             onRegionOver: function(event, code, region) {
                 handleVMapEvents(uuid, over, code, region);
             },

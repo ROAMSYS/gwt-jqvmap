@@ -6,6 +6,7 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.user.client.ui.SimplePanel;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +49,11 @@ public class VMap<T> extends SimplePanel {
     private static String mapURL;
 
     /**
+     * The RGB color code for an unselected country
+     */
+    private String color = "#f4f3f0";
+
+    /**
      * Create a new world map with default properties
      */
     public VMap() {
@@ -61,6 +67,7 @@ public class VMap<T> extends SimplePanel {
     public VMap(final VMapProperties properties) {
         uuid = properties.getUUID();
         uuidToCountryDataMapping.put(uuid, new HashMap<String, T>());
+        color = properties.getColor();
 
         setWidth("640px");
         setHeight("400px");
@@ -140,15 +147,30 @@ public class VMap<T> extends SimplePanel {
      * @param countryCodeResolver the resolver for the country- and color code
      */
     public void setValues(final Iterable<T> values, final VMapCountryColorResolver<T> countryCodeResolver) {
+        // the colors object, that will be used to update the vector map via JSNI
         final VMapCountryColors colors = VMapCountryColors.create();
+
+        // the internal value cache for event handlers
         final HashMap<String, T> valueCache = uuidToCountryDataMapping.get(uuid);
+
+        // if countries are removed from the list of values, the vector map does not redraw the country on the map
+        // we need to collect these countries and set their color to the RGB value of the unselected countries
+        final List<String> cleanUpISOCodes = new LinkedList<String>(valueCache.keySet());
+
         for (final T value : values) {
             final String isoCountryCode = countryCodeResolver.getISOCountryCode(value);
             if (isoCountryCode != null) {
                 final String lowerISOCountryCode = isoCountryCode.toLowerCase();
                 colors.set(lowerISOCountryCode, countryCodeResolver.getRGBColorCode(value));
                 valueCache.put(lowerISOCountryCode, value);
+                cleanUpISOCodes.remove(lowerISOCountryCode);
             }
+        }
+
+        // put countries that needed a cleanup into the colors object
+        for (final String isoCode : cleanUpISOCodes) {
+            valueCache.remove(isoCode);
+            colors.set(isoCode, color);
         }
         set(getElement(), "colors", colors);
     }
@@ -190,6 +212,7 @@ public class VMap<T> extends SimplePanel {
      * @param color the RGB color code
      */
     public void setColor(final String color) {
+        this.color = color;
         set(getElement(), "color", color);
     }
 
