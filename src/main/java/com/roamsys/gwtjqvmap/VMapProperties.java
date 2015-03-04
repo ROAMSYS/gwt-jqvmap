@@ -164,6 +164,7 @@ public final class VMapProperties extends JavaScriptObject {
             map: 'world_en',
             showTooltip: false,
             color: '#f4f3f0',
+            enableZoom: true,
             onRegionOver: function(event, code, region) {
                 handleVMapEvents(uuid, over, code, region);
             },
