@@ -275,14 +275,13 @@ public class VMap<T> extends SimplePanel {
     }
 
     private native void set(final String key, final Object value) /*-{
-        var map = this.@com.roamsys.gwtjqvmap.VMap::map;
-        if (map.data('mapObject')) {
-            map.vectorMap('set', key, value);
+        if (this.@com.roamsys.gwtjqvmap.VMap::map && this.@com.roamsys.gwtjqvmap.VMap::map.data('mapObject')) {
+            this.@com.roamsys.gwtjqvmap.VMap::map.vectorMap('set', key, value);
         } else {
-            if (map.data('tmpValues')) {
-                map.data('tmpValues', {});
-            }
-            map.data('tmpValues')[key] = value;
+            var that = this;
+            $wnd.setTimeout(function() {
+              that.@com.roamsys.gwtjqvmap.VMap::set(Ljava/lang/String;Ljava/lang/Object;)(key, value);
+            }, 1000);
         }
     }-*/;
 
@@ -303,15 +302,8 @@ public class VMap<T> extends SimplePanel {
             vmapWorld.type = 'text/javascript';
             vmapWorld.src = mapURL;
             vmapWorld.onload = vmapWorld.onreadystatechange = function() {
-              var map = $wnd.$(element);
-              map.vectorMap(properties);
-              that.@com.roamsys.gwtjqvmap.VMap::map = map;
-              if (map.data('tmpValues')) {
-                var values = map.data('tmpValues');
-                for (key in values) {
-                  map.vectorMap('set', key, values[key]);
-                }
-              }
+              that.@com.roamsys.gwtjqvmap.VMap::map = $wnd.$(element);
+              that.@com.roamsys.gwtjqvmap.VMap::map.vectorMap(properties);
             };
             $doc.body.appendChild(vmapWorld);
         };
