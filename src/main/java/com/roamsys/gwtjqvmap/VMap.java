@@ -24,6 +24,11 @@ public class VMap<T> extends SimplePanel {
     final static String ON_REGION_CLICK_PREFIX = "click";
 
     /**
+     * The jQuery wrapped object for the map
+     */
+    private JavaScriptObject map;
+
+    /**
      * The unique ID, that will be provided by each callback execution
      */
     private final String uuid;
@@ -172,7 +177,7 @@ public class VMap<T> extends SimplePanel {
             valueCache.remove(isoCode);
             colors.set(isoCode, color);
         }
-        set(getElement(), "colors", colors);
+        set("colors", colors);
     }
 
     /**
@@ -180,7 +185,7 @@ public class VMap<T> extends SimplePanel {
      * @param backgroundColor the RGG color code
      */
     public void setBackgroundColor(final String backgroundColor) {
-        set(getElement(), "backgroundColor", backgroundColor);
+        set("backgroundColor", backgroundColor);
     }
 
     /**
@@ -188,7 +193,7 @@ public class VMap<T> extends SimplePanel {
      * @param borderColor the RGB color code
      */
     public void setBorderColor(final String borderColor) {
-        set(getElement(), "borderColor", borderColor);
+        set("borderColor", borderColor);
     };
 
     /**
@@ -196,7 +201,7 @@ public class VMap<T> extends SimplePanel {
      * @param borderOpacity use anything from 0-1, e.g. 0.5, defaults to 0.25
      */
     public void setBorderOpacity(final double borderOpacity) {
-        set(getElement(), "borderOpacity", borderOpacity);
+        set("borderOpacity", borderOpacity);
     }
 
     /**
@@ -204,7 +209,7 @@ public class VMap<T> extends SimplePanel {
      * @param borderWidth the border with (default is 1)
      */
     public void setBorderWidth(final int borderWidth) {
-        set(getElement(), "borderWidth", borderWidth);
+        set("borderWidth", borderWidth);
     }
 
     /**
@@ -213,7 +218,7 @@ public class VMap<T> extends SimplePanel {
      */
     public void setColor(final String color) {
         this.color = color;
-        set(getElement(), "color", color);
+        set("color", color);
     }
 
     /**
@@ -221,7 +226,7 @@ public class VMap<T> extends SimplePanel {
      * @param hoverColor the RGB color code
      */
     public void setHoverColor(final String hoverColor) {
-        set(getElement(), "hoverColor", hoverColor);
+        set("hoverColor", hoverColor);
     }
 
     /**
@@ -229,7 +234,7 @@ public class VMap<T> extends SimplePanel {
      * @param hoverOpacity use anything from 0-1, defaults to 0.5
      */
     public void setHoverOpacity(final double hoverOpacity) {
-        set(getElement(), "hoverOpacity", hoverOpacity);
+        set("hoverOpacity", hoverOpacity);
     }
 
     /**
@@ -242,7 +247,7 @@ public class VMap<T> extends SimplePanel {
         for (final String color : scaleColors) {
             ((JsArrayString) array).push(color);
         }
-        set(getElement(), "scaleColors", scaleColors);
+        set("scaleColors", scaleColors);
     }
 
     /**
@@ -250,7 +255,7 @@ public class VMap<T> extends SimplePanel {
      * @param selectedColor the RGB color code
      */
     public void setSelectedColor(final String selectedColor) {
-        set(getElement(), "selectedColor", selectedColor);
+        set("selectedColor", selectedColor);
     }
 
     /**
@@ -258,7 +263,7 @@ public class VMap<T> extends SimplePanel {
      * @param selectedRegion two letter ISO code, defaults to null
      */
     public void setSelectedRegion(final String selectedRegion) {
-        set(getElement(), "selectedRegion", selectedRegion);
+        set("selectedRegion", selectedRegion);
     }
 
     /**
@@ -266,11 +271,19 @@ public class VMap<T> extends SimplePanel {
      * @param showTooltip true or false, defaults to true
      */
     public void showTooltip(final boolean showTooltip) {
-        set(getElement(), "showTooltip", showTooltip);
+        set("showTooltip", showTooltip);
     }
 
-    private native void set(final Element element, final String key, final Object value) /*-{
-        $wnd.$(element).vectorMap('set', key, value);
+    private native void set(final String key, final Object value) /*-{
+        var map = this.@com.roamsys.gwtjqvmap.VMap::map;
+        if (map.data('mapObject')) {
+            map.vectorMap('set', key, value);
+        } else {
+            if (map.data('tmpValues')) {
+                map.data('tmpValues', {});
+            }
+            map.data('tmpValues')[key] = value;
+        }
     }-*/;
 
     /**
@@ -281,6 +294,7 @@ public class VMap<T> extends SimplePanel {
      * @param mapURL the URL to the map file
      */
     private native void init(final Element element, final VMapProperties properties, final String jqvmapURL, final String mapURL) /*-{
+        var that = this;
         var vmap = $doc.createElement("script");
         vmap.type = 'text/javascript';
         vmap.src = jqvmapURL;
@@ -289,7 +303,15 @@ public class VMap<T> extends SimplePanel {
             vmapWorld.type = 'text/javascript';
             vmapWorld.src = mapURL;
             vmapWorld.onload = vmapWorld.onreadystatechange = function() {
-              $wnd.$(element).vectorMap(properties);
+              var map = $wnd.$(element);
+              map.vectorMap(properties);
+              that.@com.roamsys.gwtjqvmap.VMap::map = map;
+              if (map.data('tmpValues')) {
+                var values = map.data('tmpValues');
+                for (key in values) {
+                  map.vectorMap('set', key, values[key]);
+                }
+              }
             };
             $doc.body.appendChild(vmapWorld);
         };
