@@ -23,6 +23,9 @@ public class VMap<T> extends SimplePanel {
     final static String ON_REGION_OUT_PREFIX = "out";
     final static String ON_REGION_CLICK_PREFIX = "click";
 
+    final static String DEFAULT_WIDTH = "640px";
+    final static String DEFAULT_HEIGHT = "400px";
+
     /**
      * The jQuery wrapped object for the map
      */
@@ -51,7 +54,7 @@ public class VMap<T> extends SimplePanel {
     /**
      * The URL to the map file
      */
-    private static String mapURL;
+    private static String defaultMapURL;
 
     /**
      * The RGB color code for an unselected country
@@ -59,23 +62,44 @@ public class VMap<T> extends SimplePanel {
     private String color = "#f4f3f0";
 
     /**
-     * Create a new world map with default properties
+     * Create a new world map with default properties and default dimensions 640x480 pixels
      */
     public VMap() {
         this(VMapProperties.create());
     }
 
     /**
-     * Create a new world map
+     * Create a new world map (with default dimensions 640x480 pixels)
      * @param properties the initialization properties
      */
     public VMap(final VMapProperties properties) {
+        this(properties, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    }
+
+    /**
+     * Create a new world map
+     * @param properties the initialization properties
+     * @param width the width of the map
+     * @param height the height of the map
+     */
+    public VMap(final VMapProperties properties, final String width, final String height) {
+        this(properties, defaultMapURL, width, height);
+    }
+
+    /**
+     * Create a new world map
+     * @param properties the initialization properties
+     * @param mapURL the URL to the map file
+     * @param width the width of the map
+     * @param height the height of the map
+     */
+    public VMap(final VMapProperties properties, final String mapURL, final String width, final String height) {
         uuid = properties.getUUID();
         uuidToCountryDataMapping.put(uuid, new HashMap<String, T>());
         color = properties.getColor();
 
-        setWidth("640px");
-        setHeight("400px");
+        setWidth(width);
+        setHeight(height);
 
         init(getElement(), properties, jqvmapURL, mapURL);
     }
@@ -90,10 +114,10 @@ public class VMap<T> extends SimplePanel {
 
     /**
      * The URL to the map file
-     * @param mapURL the URL to the map file
+     * @param defaultMapURL the URL to the map file
      */
-    public static void setMapURL(final String mapURL) {
-        VMap.mapURL = mapURL;
+    public static void setMapURL(final String defaultMapURL) {
+        VMap.defaultMapURL = defaultMapURL;
     }
 
     /**
