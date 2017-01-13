@@ -1,3 +1,3 @@
-buildAndDeploy {
-  git = 'https://github.com/ROAMSYS/gwt-jqvmap'
-}
+buildAndDeploy([
+  git: 'https://github.com/ROAMSYS/gwt-jqvmap'
+])
