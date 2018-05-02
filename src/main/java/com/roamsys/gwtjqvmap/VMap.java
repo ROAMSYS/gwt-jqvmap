@@ -6,6 +6,7 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.user.client.ui.SimplePanel;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +40,12 @@ public class VMap<T> extends SimplePanel {
     /**
      * The map with all event handler lists
      */
-    private static final Map<String, List<VMapEventHandler>> eventHandlerMap = new HashMap<String, List<VMapEventHandler>>(1);
+    private static final Map<String, List<VMapEventHandler<?>>> eventHandlerMap = new HashMap<>(1);
 
     /**
      * Mapping from ISO country code to data items
      */
-    private static final Map<String, HashMap> uuidToCountryDataMapping = new HashMap<String, HashMap>(1);
+    private static final Map<String, HashMap<String, ?>> uuidToCountryDataMapping = new HashMap<>(1);
 
     /**
      * The URL to the jQuery Vector Map JavaScript file
@@ -145,9 +146,9 @@ public class VMap<T> extends SimplePanel {
     }
 
     private void addRegionEventHandler(final String key, final VMapEventHandler<T> handler) {
-        List<VMapEventHandler> events = eventHandlerMap.get(key);
+        List<VMapEventHandler<?>> events = eventHandlerMap.get(key);
         if (events == null) {
-            events = new ArrayList<VMapEventHandler>(1);
+            events = new ArrayList<>(1);
         }
         events.add(handler);
         eventHandlerMap.put(key, events);
@@ -160,12 +161,13 @@ public class VMap<T> extends SimplePanel {
      * @param code the ISO country code
      * @param region the region name
      */
-    private static void handleVMapRegionEvents(final String uuid, final String event, final String code, final String region) {
-        final List<VMapEventHandler> handlerList = eventHandlerMap.get(uuid + event);
-        final HashMap values = uuidToCountryDataMapping.get(uuid);
+    @SuppressWarnings("unchecked")
+    private static <T> void handleVMapRegionEvents(final String uuid, final String event, final String code, final String region) {
+        final List<VMapEventHandler<?>> handlerList = eventHandlerMap.get(uuid + event);
+        final Map<String, T> values = (Map<String, T>) uuidToCountryDataMapping.get(uuid);
         if (handlerList != null) {
-            for (final VMapEventHandler handler : handlerList) {
-                handler.onEvent(code, region, values);
+            for (final Iterator<VMapEventHandler<?>> iterator = handlerList.iterator(); iterator.hasNext();) {
+                ((VMapEventHandler<T>) iterator.next()).onEvent(code, region, values);    
             }
         }
     }
@@ -180,7 +182,8 @@ public class VMap<T> extends SimplePanel {
         final VMapCountryColors colors = VMapCountryColors.create();
 
         // the internal value cache for event handlers
-        final HashMap<String, T> valueCache = uuidToCountryDataMapping.get(uuid);
+        @SuppressWarnings("unchecked")
+        final HashMap<String, T> valueCache = (HashMap<String, T>) uuidToCountryDataMapping.get(uuid);
 
         // if countries are removed from the list of values, the vector map does not redraw the country on the map
         // we need to collect these countries and set their color to the RGB value of the unselected countries
